@@ -1,0 +1,158 @@
+/* Reset some default styles */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+/* Body styles */
+body {
+    background: linear-gradient(135deg, #e0e7ff 0%, #f8fafc 100%);
+    min-height: 100vh;
+    font-family: 'Segoe UI', Arial, sans-serif;
+}
+
+/* Kanban board styles */
+.kanban-board {
+    display: flex;
+    justify-content: space-between;
+    padding: 20px;
+}
+
+/* Column styles */
+.column {
+    background-color: #fff;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    width: 30%;
+    padding: 10px;
+    margin: 0 10px;
+}
+
+/* Card styles */
+.card {
+    background-color: #e2e2e2;
+    border-radius: 1rem;
+    padding: 10px;
+    margin: 10px 0;
+    transition: background-color 0.3s;
+    box-shadow: 0 4px 24px 0 rgba(0,0,0,0.07);
+}
+
+.card:hover {
+    background-color: #d1d1d1;
+}
+
+/* Button styles */
+button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 3px;
+    padding: 10px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+/* Form styles */
+.kanban-form {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 20px;
+}
+
+.kanban-form input,
+.kanban-form textarea {
+    padding: 10px;
+    margin: 5px 0;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+}
+
+.kanban-form button {
+    margin-top: 10px;
+}
+
+/* Additional styles */
+.card-header.bg-primary {
+    background: linear-gradient(90deg, #2563eb 60%, #60a5fa 100%) !important;
+}
+
+.card-header.bg-light {
+    background: #f1f5f9 !important;
+}
+
+.btn-group .btn {
+    min-width: 120px;
+    font-size: 1.1em;
+}
+
+#lista-sentimentos .list-group-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    font-size: 1.1em;
+    background: #f8fafc;
+    border: none;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+#lista-sentimentos .emoji {
+    font-size: 1.5em;
+}
+
+#user-section {
+    margin-bottom: 2rem;
+}
+
+#profile-pic {
+    border: 2px solid #2563eb;
+    background: #fff;
+}
+
+#login-form input {
+    min-width: 120px;
+}
+
+#login-form .btn,
+#login-form #register-btn {
+    min-width: 90px;
+}
+
+#registerModal .modal-content {
+    border-radius: 1rem;
+}
+
+#registerModal .modal-header {
+    background: linear-gradient(90deg, #2563eb 60%, #60a5fa 100%);
+    color: #fff;
+    border-top-left-radius: 1rem;
+    border-top-right-radius: 1rem;
+}
+
+#registerModal .modal-footer {
+    border-bottom-left-radius: 1rem;
+    border-bottom-right-radius: 1rem;
+}
+
+.form-check-input:checked {
+    background-color: #2563eb;
+    border-color: #2563eb;
+}
+
+.btn-primary, .btn-success, .btn-warning, .btn-danger {
+    box-shadow: 0 2px 8px 0 rgba(37,99,235,0.08);
+}
+
+@media (max-width: 767px) {
+    .container {
+        padding: 0 0.5rem !important;
+    }
+    .card {
+        margin-bottom: 1.5rem;
+    }
+}
