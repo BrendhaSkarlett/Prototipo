@@ -118,6 +118,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ======= Login/Perfil/Registro =======
     const formularioLogin = document.getElementById('login-form');
+    const openLoginModalBtn = document.getElementById('open-login-modal');
+    let loginModal = null;
+    if (document.getElementById('loginModal')) {
+        loginModal = new bootstrap.Modal(document.getElementById('loginModal'));
+    }
+    if (openLoginModalBtn && loginModal) {
+        openLoginModalBtn.addEventListener('click', () => {
+            document.getElementById('login-error').classList.add('d-none');
+            formularioLogin.reset();
+            loginModal.show();
+        });
+    }
     const infoPerfil = document.getElementById('profile-info');
     const fotoPerfil = document.getElementById('profile-pic');
     const nomePerfil = document.getElementById('profile-name');
@@ -186,8 +198,7 @@ document.addEventListener('DOMContentLoaded', () => {
         fotoPerfil.src = foto;
         nomePerfil.textContent = nome;
         infoPerfil.classList.remove('d-none');
-        formularioLogin.classList.add('d-none');
-
+        if (typeof openLoginModalBtn !== 'undefined' && openLoginModalBtn) openLoginModalBtn.classList.add('d-none');
         // Mostra mensagem de status de conexão
         let status = document.getElementById('status-conectado');
         if (status) {
@@ -198,10 +209,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function sair() {
         infoPerfil.classList.add('d-none');
-        formularioLogin.classList.remove('d-none');
+        if (typeof openLoginModalBtn !== 'undefined' && openLoginModalBtn) openLoginModalBtn.classList.remove('d-none');
         fotoPerfil.src = '';
         nomePerfil.textContent = '';
-
         // Esconde mensagem de status de conexão
         let status = document.getElementById('status-conectado');
         if (status) {
@@ -265,12 +275,20 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         const usuario = document.getElementById('login-name').value;
         const senha = document.getElementById('login-password').value;
-
+        const loginError = document.getElementById('login-error');
         const usuarioEncontrado = encontrarUsuario(usuario, senha);
         if (usuarioEncontrado) {
             mostrarPerfil(usuarioEncontrado.name, usuarioEncontrado.pic);
+            if (typeof loginModal !== 'undefined' && loginModal) loginModal.hide();
+            formularioLogin.reset();
+            if (loginError) loginError.classList.add('d-none');
         } else {
-            alert('Usuário ou senha inválidos!');
+            if (loginError) {
+                loginError.textContent = 'Usuário ou senha inválidos!';
+                loginError.classList.remove('d-none');
+            } else {
+                alert('Usuário ou senha inválidos!');
+            }
         }
     });
 
@@ -313,12 +331,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const anonimo = document.getElementById('anonimo').checked;
 
         let usuario = '';
-        if (!anonimo && !loginForm.classList.contains('d-none')) {
+        if (!anonimo && (typeof formularioLogin !== 'undefined') && !document.getElementById('profile-info').classList.contains('d-none')) {
+            usuario = nomePerfil && nomePerfil.textContent ? nomePerfil.textContent : '';
+        } else if (!anonimo) {
             alert('Para enviar não anônimo, faça login!');
             return;
-        }
-        if (!anonimo && profileName.textContent) {
-            usuario = profileName.textContent;
         }
 
         const novo = { sentimento, comentario, anonimo, usuario };
