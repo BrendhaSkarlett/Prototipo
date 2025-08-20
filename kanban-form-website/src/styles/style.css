@@ -1,158 +1,145 @@
-/* Reset some default styles */
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-}
-
-/* Body styles */
+/* Fonte mais suave e moderna */
 body {
-    background: linear-gradient(135deg, #e0e7ff 0%, #f8fafc 100%);
-    min-height: 100vh;
-    font-family: 'Segoe UI', Arial, sans-serif;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, #f0f4f8 0%, #d9e2ec 100%);
+  min-height: 100vh;
 }
 
-/* Kanban board styles */
-.kanban-board {
-    display: flex;
-    justify-content: space-between;
-    padding: 20px;
-}
-
-/* Column styles */
-.column {
-    background-color: #fff;
-    border-radius: 5px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    width: 30%;
-    padding: 10px;
-    margin: 0 10px;
-}
-
-/* Card styles */
+/* Container com sombra e borda arredondada */
 .card {
-    background-color: #e2e2e2;
-    border-radius: 1rem;
-    padding: 10px;
-    margin: 10px 0;
-    transition: background-color 0.3s;
-    box-shadow: 0 4px 24px 0 rgba(0,0,0,0.07);
+  border-radius: 15px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  background-color: #ffffffcc; /* branco com leve transparência */
 }
 
+/* Card eleva e cresce levemente ao passar o mouse */
 .card:hover {
-    background-color: #d1d1d1;
+  transform: translateY(-5px);
+  box-shadow: 0 16px 30px rgba(0, 0, 0, 0.15);
 }
 
-/* Button styles */
-button {
-    background-color: #007bff;
-    color: white;
-    border: none;
-    border-radius: 3px;
-    padding: 10px;
-    cursor: pointer;
-    transition: background-color 0.3s;
-}
-
-button:hover {
-    background-color: #0056b3;
-}
-
-/* Form styles */
-.kanban-form {
-    display: flex;
-    flex-direction: column;
-    margin-bottom: 20px;
-}
-
-.kanban-form input,
-.kanban-form textarea {
-    padding: 10px;
-    margin: 5px 0;
-    border: 1px solid #ccc;
-    border-radius: 3px;
-}
-
-.kanban-form button {
-    margin-top: 10px;
-}
-
-/* Additional styles */
+/* Cabeçalho do card */
 .card-header.bg-primary {
-    background: linear-gradient(90deg, #2563eb 60%, #60a5fa 100%) !important;
+  background: linear-gradient(45deg, #007bff, #0056b3);
+  border-top-left-radius: 15px;
+  border-top-right-radius: 15px;
+  font-weight: 700;
+  font-size: 1.6rem;
+  letter-spacing: 0.05em;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.3);
 }
 
-.card-header.bg-light {
-    background: #f1f5f9 !important;
+/* Botões personalizados */
+.btn-primary {
+  background: linear-gradient(45deg, #0056b3, #007bff);
+  border: none;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  transition: background 0.3s ease;
 }
 
+.btn-primary:hover, .btn-primary:focus {
+  background: linear-gradient(45deg, #007bff, #339cff);
+  box-shadow: 0 0 8px #339cff;
+  outline: none;
+}
+
+/* Botões success e danger com transições suaves */
+.btn-success {
+  transition: background 0.3s ease;
+}
+
+.btn-success:hover {
+  background-color: #2ecc71 !important;
+  box-shadow: 0 0 8px #27ae60;
+}
+
+.btn-danger {
+  transition: background 0.3s ease;
+}
+
+.btn-danger:hover {
+  background-color: #e74c3c !important;
+  box-shadow: 0 0 8px #c0392b;
+}
+
+/* Labels dos botões de sentimento com maior tamanho e emoji maior */
 .btn-group .btn {
-    min-width: 120px;
-    font-size: 1.1em;
+  font-size: 1.25rem;
+  padding: 0.5rem 1.5rem;
+  border-radius: 30px;
+  user-select: none;
 }
 
-#lista-sentimentos .list-group-item {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    font-size: 1.1em;
-    background: #f8fafc;
-    border: none;
-    border-bottom: 1px solid #e5e7eb;
+.btn-group .btn label {
+  cursor: pointer;
 }
 
-#lista-sentimentos .emoji {
-    font-size: 1.5em;
+/* Inputs ocultos com transição nos labels */
+.btn-check:checked + label {
+  box-shadow: 0 0 10px #007bff;
+  transform: scale(1.05);
+  font-weight: 700;
 }
 
-#user-section {
-    margin-bottom: 2rem;
+/* Área de comentário */
+textarea.form-control {
+  border-radius: 10px;
+  border: 1.5px solid #ced4da;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
-#profile-pic {
-    border: 2px solid #2563eb;
-    background: #fff;
+textarea.form-control:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 6px #339cff;
 }
 
-#login-form input {
-    min-width: 120px;
-}
-
-#login-form .btn,
-#login-form #register-btn {
-    min-width: 90px;
-}
-
-#registerModal .modal-content {
-    border-radius: 1rem;
-}
-
-#registerModal .modal-header {
-    background: linear-gradient(90deg, #2563eb 60%, #60a5fa 100%);
-    color: #fff;
-    border-top-left-radius: 1rem;
-    border-top-right-radius: 1rem;
-}
-
-#registerModal .modal-footer {
-    border-bottom-left-radius: 1rem;
-    border-bottom-right-radius: 1rem;
-}
-
+/* Checkbox estilizado */
 .form-check-input:checked {
-    background-color: #2563eb;
-    border-color: #2563eb;
+  background-color: #007bff;
+  border-color: #007bff;
 }
 
-.btn-primary, .btn-success, .btn-warning, .btn-danger {
-    box-shadow: 0 2px 8px 0 rgba(37,99,235,0.08);
+/* Mensagens de alerta com borda arredondada */
+.alert {
+  border-radius: 12px;
+  font-size: 0.95rem;
 }
 
-@media (max-width: 767px) {
-    .container {
-        padding: 0 0.5rem !important;
-    }
-    .card {
-        margin-bottom: 1.5rem;
-    }
+/* Mensagem de sucesso */
+#mensagem-sucesso {
+  font-weight: 600;
+  text-align: center;
+}
+
+/* Foto de perfil arredondada com sombra */
+#profile-pic {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  transition: transform 0.3s ease;
+}
+
+#profile-pic:hover {
+  transform: scale(1.1);
+}
+
+/* Modal customizado */
+.modal-content {
+  border-radius: 20px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+}
+
+/* Scrollbar customizado para textarea */
+textarea::-webkit-scrollbar {
+  width: 8px;
+}
+
+textarea::-webkit-scrollbar-thumb {
+  background: #007bff;
+  border-radius: 10px;
+}
+
+textarea::-webkit-scrollbar-track {
+  background: #e9ecef;
+  border-radius: 10px;
 }

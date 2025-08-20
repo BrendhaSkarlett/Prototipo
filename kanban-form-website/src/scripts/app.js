@@ -1,352 +1,231 @@
 // Este arquivo contém a lógica principal em JavaScript do site. Ele gerencia envios de formulários, atualiza o quadro Kanban e controla o estado da aplicação.
 
-document.addEventListener('DOMContentLoaded', () => {
+
     // ======= Kanban =======
-    const formulario = document.getElementById('kanban-form');
+    // app.js
 
-    formulario.addEventListener('submit', (evento) => {
-        evento.preventDefault();
-        const titulo = document.getElementById('task-title').value;
-        const descricao = document.getElementById('task-description').value;
+// Dados simulados de usuários e sentimentos (armazenados no localStorage)
+const STORAGE_USERS = 'usuarios_app_sentimentos';
+const STORAGE_SESSAO = 'sessao_ativa';
+const STORAGE_SENTIMENTOS = 'sentimentos_enviados';
 
-        adicionarTarefaKanban(titulo, descricao, 'todo');
-        formulario.reset();
+document.addEventListener('DOMContentLoaded', () => {
+  // Elementos DOM
+  const userSection = document.getElementById('user-section');
+  const profileInfo = document.getElementById('profile-info');
+  const profilePic = document.getElementById('profile-pic');
+  const profileName = document.getElementById('profile-name');
+  const logoutBtn = document.getElementById('logout-btn');
+  const openLoginModalBtn = document.getElementById('open-login-modal');
+  const registerBtn = document.getElementById('register-btn');
+
+  const loginModal = new bootstrap.Modal(document.getElementById('loginModal'));
+  const registerModal = new bootstrap.Modal(document.getElementById('registerModal'));
+
+  const loginForm = document.getElementById('login-form');
+  const registerForm = document.getElementById('register-form');
+  const sentimentoForm = document.getElementById('sentimento-form');
+
+  const loginError = document.getElementById('login-error');
+  const mensagemSucesso = document.getElementById('mensagem-sucesso');
+
+  const listaSentimentosCard = document.querySelector('.card.mt-4');
+  const listaSentimentos = document.getElementById('lista-sentimentos');
+
+  // Inicializa localStorage com array vazio se não existir
+  function inicializarStorage() {
+    if (!localStorage.getItem(STORAGE_USERS)) localStorage.setItem(STORAGE_USERS, JSON.stringify([]));
+    if (!localStorage.getItem(STORAGE_SENTIMENTOS)) localStorage.setItem(STORAGE_SENTIMENTOS, JSON.stringify([]));
+  }
+
+  // Obter usuários e sessão
+  function getUsuarios() {
+    return JSON.parse(localStorage.getItem(STORAGE_USERS)) || [];
+  }
+
+  function setUsuarios(usuarios) {
+    localStorage.setItem(STORAGE_USERS, JSON.stringify(usuarios));
+  }
+
+  function getSessao() {
+    return JSON.parse(localStorage.getItem(STORAGE_SESSAO));
+  }
+
+  function setSessao(usuario) {
+    localStorage.setItem(STORAGE_SESSAO, JSON.stringify(usuario));
+  }
+
+  function clearSessao() {
+    localStorage.removeItem(STORAGE_SESSAO);
+  }
+
+  function getSentimentos() {
+    return JSON.parse(localStorage.getItem(STORAGE_SENTIMENTOS)) || [];
+  }
+
+  function setSentimentos(sentimentos) {
+    localStorage.setItem(STORAGE_SENTIMENTOS, JSON.stringify(sentimentos));
+  }
+
+  // Atualiza a UI de acordo com sessão
+  function atualizarUI() {
+    const sessao = getSessao();
+
+    if (sessao) {
+      // Usuário logado
+      profileInfo.classList.remove('d-none');
+      openLoginModalBtn.classList.add('d-none');
+      registerBtn.classList.add('d-none');
+
+      profilePic.src = sessao.fotoPerfil || 'https://via.placeholder.com/40';
+      profileName.textContent = sessao.nome;
+
+      listaSentimentosCard.classList.remove('d-none');
+      carregarSentimentos();
+    } else {
+      // Não logado
+      profileInfo.classList.add('d-none');
+      openLoginModalBtn.classList.remove('d-none');
+      registerBtn.classList.remove('d-none');
+
+      listaSentimentosCard.classList.add('d-none');
+    }
+  }
+
+  // Carrega lista de sentimentos na tela (só pra usuário logado)
+  function carregarSentimentos() {
+    const sentimentos = getSentimentos();
+    listaSentimentos.innerHTML = '';
+
+    if (sentimentos.length === 0) {
+      listaSentimentos.innerHTML = '<li class="list-group-item text-muted">Nenhum sentimento enviado ainda.</li>';
+      return;
+    }
+
+    sentimentos.forEach(item => {
+      // Exibir "Anônimo" se marcado
+      const remetente = item.anonimo ? 'Anônimo' : item.nome;
+
+      const li = document.createElement('li');
+      li.className = 'list-group-item';
+      li.innerHTML = `
+        <strong>${remetente}</strong> <small class="text-muted">(${new Date(item.data).toLocaleString()})</small><br>
+        Sentimento: <span class="fw-semibold">${item.sentimento}</span><br>
+        Comentário: ${item.comentario ? item.comentario : '<em>Sem comentário</em>'}
+      `;
+      listaSentimentos.appendChild(li);
     });
+  }
 
-    function adicionarTarefaKanban(titulo, descricao, status) {
-        const cartao = document.createElement('div');
-        cartao.className = 'card mb-2';
-        cartao.innerHTML = `
-            <div class="card-body">
-                <h5 class="card-title">${titulo}</h5>
-                <p class="card-text">${descricao}</p>
-                <div class="mb-2">
-                    <label class="form-label">Avaliação:</label>
-                    <div>
-                        <button class="btn btn-success btn-sm me-1 btn-avaliacao" data-valor="bom">Bom</button>
-                        <button class="btn btn-warning btn-sm me-1 btn-avaliacao" data-valor="medio">Médio</button>
-                        <button class="btn btn-danger btn-sm btn-avaliacao" data-valor="ruim">Ruim</button>
-                    </div>
-                    <div class="mt-1" style="font-size:0.9em;" id="avaliacao-resultado"></div>
-                </div>
-                <div class="mb-2">
-                    <label class="form-label">Responder:</label>
-                    <textarea class="form-control mb-1 resposta-texto" rows="2" placeholder="Digite sua resposta"></textarea>
-                    <div class="form-check">
-                        <input class="form-check-input resposta-anonima" type="checkbox" id="anonima-${Math.random().toString(36).substr(2, 5)}">
-                        <label class="form-check-label">Enviar como anônimo</label>
-                    </div>
-                    <button class="btn btn-primary btn-sm mt-1 btn-enviar-resposta">Enviar resposta</button>
-                    <div class="mt-1" style="font-size:0.9em;" id="resposta-resultado"></div>
-                </div>
-            </div>
-        `;
-        const coluna = document.querySelector(`#${status} .kanban-cards`);
-        coluna.appendChild(cartao);
+  // Login
+  loginForm.addEventListener('submit', e => {
+    e.preventDefault();
+    loginError.classList.add('d-none');
+    const username = document.getElementById('login-name').value.trim();
+    const password = document.getElementById('login-password').value;
 
-        // Avaliação
-        const resultadoAvaliacao = cartao.querySelector('#avaliacao-resultado');
-        cartao.querySelectorAll('.btn-avaliacao').forEach(btn => {
-            btn.addEventListener('click', function () {
-                let valor = this.getAttribute('data-valor');
-                let texto = '';
-                if (valor === 'bom') texto = 'Avaliação: Bom 👍';
-                if (valor === 'medio') texto = 'Avaliação: Médio 😐';
-                if (valor === 'ruim') texto = 'Avaliação: Ruim 👎';
-                resultadoAvaliacao.textContent = texto;
-            });
-        });
+    const usuarios = getUsuarios();
+    const usuario = usuarios.find(u => u.username === username && u.senha === password);
 
-        // Resposta
-        const btnEnviarResposta = cartao.querySelector('.btn-enviar-resposta');
-        const respostaTexto = cartao.querySelector('.resposta-texto');
-        const respostaAnonima = cartao.querySelector('.resposta-anonima');
-        const respostaResultado = cartao.querySelector('#resposta-resultado');
+    if (usuario) {
+      setSessao(usuario);
+      loginForm.reset();
+      loginModal.hide();
+      atualizarUI();
+    } else {
+      loginError.textContent = 'Usuário ou senha incorretos.';
+      loginError.classList.remove('d-none');
+    }
+  });
 
-        btnEnviarResposta.addEventListener('click', function () {
-            const texto = respostaTexto.value.trim();
-            if (!texto) {
-                respostaResultado.textContent = 'Digite uma resposta!';
-                respostaResultado.classList.add('text-danger');
-                return;
-            }
-            let nome = 'Anônimo';
-            if (!respostaAnonima.checked) {
-                const nomePerfil = document.getElementById('profile-name');
-                nome = nomePerfil && nomePerfil.textContent ? nomePerfil.textContent : 'Usuário';
-            }
-            respostaResultado.textContent = `Resposta enviada por ${nome}: "${texto}"`;
-            respostaResultado.classList.remove('text-danger');
-            respostaTexto.value = '';
-            respostaAnonima.checked = false;
-        });
+  // Registro
+  registerForm.addEventListener('submit', e => {
+    e.preventDefault();
+
+    const nome = document.getElementById('register-name').value.trim();
+    const picInput = document.getElementById('register-pic');
+    const username = document.getElementById('register-username').value.trim();
+    const senha = document.getElementById('register-password').value;
+
+    const usuarios = getUsuarios();
+    if (usuarios.some(u => u.username === username)) {
+      alert('Usuário já existe. Escolha outro nome.');
+      return;
     }
 
-    // ======= Tema Claro/Escuro =======
-    const botaoTema = document.createElement('button');
-    botaoTema.id = 'tema-btn';
-    botaoTema.className = 'btn btn-dark btn-sm ms-2';
-    botaoTema.textContent = 'Modo Escuro';
-
-    // Adiciona o botão ao topo
-    const secaoUsuario = document.getElementById('user-section');
-    secaoUsuario.appendChild(botaoTema);
-
-    // Aplica o tema salvo
-    if (localStorage.getItem('tema') === 'escuro') {
-        document.body.classList.add('bg-dark', 'text-light');
-        botaoTema.textContent = 'Modo Claro';
-        botaoTema.classList.remove('btn-dark');
-        botaoTema.classList.add('btn-light');
+    // Ler a imagem como base64
+    const file = picInput.files[0];
+    if (!file) {
+      alert('Por favor, selecione uma foto de perfil.');
+      return;
     }
 
-    botaoTema.addEventListener('click', () => {
-        if (document.body.classList.contains('bg-dark')) {
-            document.body.classList.remove('bg-dark', 'text-light');
-            botaoTema.textContent = 'Modo Escuro';
-            botaoTema.classList.remove('btn-light');
-            botaoTema.classList.add('btn-dark');
-            localStorage.setItem('tema', 'claro');
-        } else {
-            document.body.classList.add('bg-dark', 'text-light');
-            botaoTema.textContent = 'Modo Claro';
-            botaoTema.classList.remove('btn-dark');
-            botaoTema.classList.add('btn-light');
-            localStorage.setItem('tema', 'escuro');
-        }
+    const reader = new FileReader();
+    reader.onload = function () {
+      const fotoPerfil = reader.result;
+
+      // Adiciona usuário novo
+      usuarios.push({ nome, fotoPerfil, username, senha });
+      setUsuarios(usuarios);
+
+      registerForm.reset();
+      registerModal.hide();
+      alert('Usuário registrado com sucesso! Agora faça login.');
+    };
+
+    reader.readAsDataURL(file);
+  });
+
+  // Logout
+  logoutBtn.addEventListener('click', () => {
+    clearSessao();
+    atualizarUI();
+  });
+
+  // Form de sentimento
+  sentimentoForm.addEventListener('submit', e => {
+    e.preventDefault();
+
+    const sessao = getSessao();
+    if (!sessao && !document.getElementById('anonimo').checked) {
+      alert('Você precisa estar logado ou enviar como anônimo para enviar seu sentimento.');
+      return;
+    }
+
+    const sentimento = sentimentoForm.sentimento.value;
+    const comentario = document.getElementById('comentario').value.trim();
+    const anonimo = document.getElementById('anonimo').checked;
+
+    const sentimentos = getSentimentos();
+    sentimentos.push({
+      nome: anonimo ? 'Anônimo' : (sessao ? sessao.nome : 'Anônimo'),
+      sentimento,
+      comentario,
+      anonimo,
+      data: new Date().toISOString(),
     });
+    setSentimentos(sentimentos);
 
-    // ======= Login/Perfil/Registro =======
-    const formularioLogin = document.getElementById('login-form');
-    const openLoginModalBtn = document.getElementById('open-login-modal');
-    let loginModal = null;
-    if (document.getElementById('loginModal')) {
-        loginModal = new bootstrap.Modal(document.getElementById('loginModal'));
-    }
-    if (openLoginModalBtn && loginModal) {
-        openLoginModalBtn.addEventListener('click', () => {
-            document.getElementById('login-error').classList.add('d-none');
-            formularioLogin.reset();
-            loginModal.show();
-        });
-    }
-    const infoPerfil = document.getElementById('profile-info');
-    const fotoPerfil = document.getElementById('profile-pic');
-    const nomePerfil = document.getElementById('profile-name');
-    const botaoSair = document.getElementById('logout-btn');
+    sentimentoForm.reset();
+    mensagemSucesso.textContent = 'Sentimento enviado com sucesso!';
+    mensagemSucesso.classList.remove('d-none');
 
-    // Elementos do modal de registro
-    let modalRegistro;
-    let formularioRegistro;
+    // Atualizar lista se for responsável (logado)
+    if (sessao) carregarSentimentos();
 
-    // Modal de registro em português
-    function criarModalRegistro() {
-        const modalHtml = `
-        <div class="modal fade" id="registerModal" tabindex="-1" aria-labelledby="registerModalLabel" aria-hidden="true">
-          <div class="modal-dialog">
-            <div class="modal-content">
-              <form id="register-form" enctype="multipart/form-data">
-                <div class="modal-header">
-                  <h5 class="modal-title" id="registerModalLabel">Registrar nova conta</h5>
-                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
-                </div>
-                <div class="modal-body">
-                  <div class="mb-3">
-                    <label for="register-name" class="form-label">Nome</label>
-                    <input type="text" class="form-control" id="register-name" required>
-                  </div>
-                  <div class="mb-3">
-                    <label for="register-pic" class="form-label">Foto de perfil</label>
-                    <input type="file" class="form-control" id="register-pic" accept="image/*" required>
-                  </div>
-                  <div class="mb-3">
-                    <label for="register-username" class="form-label">Usuário</label>
-                    <input type="text" class="form-control" id="register-username" required>
-                  </div>
-                  <div class="mb-3">
-                    <label for="register-password" class="form-label">Senha</label>
-                    <input type="password" class="form-control" id="register-password" required>
-                  </div>
-                </div>
-                <div class="modal-footer">
-                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                  <button type="submit" class="btn btn-primary">Registrar</button>
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
-        `;
-        document.body.insertAdjacentHTML('beforeend', modalHtml);
-        modalRegistro = new bootstrap.Modal(document.getElementById('registerModal'));
-        formularioRegistro = document.getElementById('register-form');
-    }
+    setTimeout(() => {
+      mensagemSucesso.classList.add('d-none');
+    }, 4000);
+  });
 
-    // Armazena usuários no localStorage
-    function salvarUsuario(usuario) {
-        let usuarios = JSON.parse(localStorage.getItem('usuarios') || '[]');
-        usuarios.push(usuario);
-        localStorage.setItem('usuarios', JSON.stringify(usuarios));
-    }
+  // Botão abrir modal login
+  openLoginModalBtn.addEventListener('click', () => {
+    loginError.classList.add('d-none');
+    loginForm.reset();
+    loginModal.show();
+  });
 
-    function encontrarUsuario(usuario, senha) {
-        let usuarios = JSON.parse(localStorage.getItem('usuarios') || '[]');
-        return usuarios.find(u => u.username === usuario && u.password === senha);
-    }
-
-    function mostrarPerfil(nome, foto) {
-        fotoPerfil.src = foto;
-        nomePerfil.textContent = nome;
-        infoPerfil.classList.remove('d-none');
-        if (typeof openLoginModalBtn !== 'undefined' && openLoginModalBtn) openLoginModalBtn.classList.add('d-none');
-        // Mostra mensagem de status de conexão
-        let status = document.getElementById('status-conectado');
-        if (status) {
-            status.innerHTML = `<strong>Conectado como:</strong> ${nome}`;
-            status.classList.remove('d-none');
-        }
-    }
-
-    function sair() {
-        infoPerfil.classList.add('d-none');
-        if (typeof openLoginModalBtn !== 'undefined' && openLoginModalBtn) openLoginModalBtn.classList.remove('d-none');
-        fotoPerfil.src = '';
-        nomePerfil.textContent = '';
-        // Esconde mensagem de status de conexão
-        let status = document.getElementById('status-conectado');
-        if (status) {
-            status.classList.add('d-none');
-        }
-    }
-
-    // Botão Registrar
-    if (!document.getElementById('register-btn')) {
-        const botaoRegistrar = document.createElement('button');
-        botaoRegistrar.type = 'button';
-        botaoRegistrar.id = 'register-btn';
-        botaoRegistrar.className = 'btn btn-outline-primary btn-sm';
-        botaoRegistrar.textContent = 'Registrar';
-        formularioLogin.appendChild(botaoRegistrar);
-
-        botaoRegistrar.addEventListener('click', () => {
-            if (!document.getElementById('registerModal')) {
-                criarModalRegistro();
-                lidarComRegistro();
-            }
-            modalRegistro.show();
-        });
-    }
-
-    // Registro
-    function lidarComRegistro() {
-        formularioRegistro.addEventListener('submit', function(e) {
-            e.preventDefault();
-            const nome = document.getElementById('register-name').value;
-            const inputFoto = document.getElementById('register-pic');
-            const usuario = document.getElementById('register-username').value;
-            const senha = document.getElementById('register-password').value;
-
-            let usuarios = JSON.parse(localStorage.getItem('usuarios') || '[]');
-            if (usuarios.some(u => u.username === usuario)) {
-                alert('Usuário já existe!');
-                return;
-            }
-
-            const arquivo = inputFoto.files[0];
-            if (!arquivo) {
-                alert('Selecione uma foto!');
-                return;
-            }
-
-            const leitor = new FileReader();
-            leitor.onload = function(evento) {
-                const fotoDataUrl = evento.target.result;
-                salvarUsuario({ name: nome, pic: fotoDataUrl, username: usuario, password: senha });
-                alert('Conta registrada com sucesso! Faça login.');
-                modalRegistro.hide();
-                formularioRegistro.reset();
-            };
-            leitor.readAsDataURL(arquivo);
-        });
-    }
-
-    // Login
-    formularioLogin.addEventListener('submit', function(e) {
-        e.preventDefault();
-        const usuario = document.getElementById('login-name').value;
-        const senha = document.getElementById('login-password').value;
-        const loginError = document.getElementById('login-error');
-        const usuarioEncontrado = encontrarUsuario(usuario, senha);
-        if (usuarioEncontrado) {
-            mostrarPerfil(usuarioEncontrado.name, usuarioEncontrado.pic);
-            if (typeof loginModal !== 'undefined' && loginModal) loginModal.hide();
-            formularioLogin.reset();
-            if (loginError) loginError.classList.add('d-none');
-        } else {
-            if (loginError) {
-                loginError.textContent = 'Usuário ou senha inválidos!';
-                loginError.classList.remove('d-none');
-            } else {
-                alert('Usuário ou senha inválidos!');
-            }
-        }
-    });
-
-    botaoSair.addEventListener('click', function() {
-        sair();
-    });
-
-    // --- SENTIMENTOS ---
-    const form = document.getElementById('sentimento-form');
-    const lista = document.getElementById('lista-sentimentos');
-    const mensagemSucesso = document.getElementById('mensagem-sucesso');
-
-    // Carregar sentimentos salvos
-    function carregarSentimentos() {
-        lista.innerHTML = '';
-        const sentimentos = JSON.parse(localStorage.getItem('sentimentos') || '[]');
-        sentimentos.reverse().forEach(item => {
-            const li = document.createElement('li');
-            li.className = 'list-group-item';
-            let emoji = '';
-            if (item.sentimento === 'Bom') emoji = '😊';
-            else if (item.sentimento === 'Mais ou menos') emoji = '😐';
-            else emoji = '😞';
-
-            li.innerHTML = `
-                <span class="emoji">${emoji}</span>
-                <span><strong>${item.sentimento}</strong>${item.anonimo ? ' (Anônimo)' : item.usuario ? ` (${item.usuario})` : ''}</span>
-                ${item.comentario ? `<span class="text-muted">- ${item.comentario}</span>` : ''}
-            `;
-            lista.appendChild(li);
-        });
-    }
-
-    carregarSentimentos();
-
-    form.addEventListener('submit', function(e) {
-        e.preventDefault();
-        const sentimento = form.sentimento.value;
-        const comentario = document.getElementById('comentario').value.trim();
-        const anonimo = document.getElementById('anonimo').checked;
-
-        let usuario = '';
-        if (!anonimo && (typeof formularioLogin !== 'undefined') && !document.getElementById('profile-info').classList.contains('d-none')) {
-            usuario = nomePerfil && nomePerfil.textContent ? nomePerfil.textContent : '';
-        } else if (!anonimo) {
-            alert('Para enviar não anônimo, faça login!');
-            return;
-        }
-
-        const novo = { sentimento, comentario, anonimo, usuario };
-        let sentimentos = JSON.parse(localStorage.getItem('sentimentos') || '[]');
-        sentimentos.push(novo);
-        localStorage.setItem('sentimentos', JSON.stringify(sentimentos));
-
-        mensagemSucesso.textContent = 'Sua resposta foi enviada para um dos nossos representantes!';
-        mensagemSucesso.classList.remove('d-none');
-        form.reset();
-        carregarSentimentos();
-        setTimeout(() => mensagemSucesso.classList.add('d-none'), 3000);
-    });
+  // Inicializar tudo
+  inicializarStorage();
+  atualizarUI();
 });
