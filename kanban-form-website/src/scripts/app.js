@@ -318,8 +318,18 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     setSentimentos(sentimentos);
 
+    // Mensagem motivadora conforme o sentimento
+    let mensagemMotivadora = '';
+    if (sentimento === 'Bom') {
+      mensagemMotivadora = 'Continue assim! Que seu dia seja incrível!';
+    } else if (sentimento === 'Mais ou menos') {
+      mensagemMotivadora = 'Dias assim acontecem. Respire fundo, tudo pode melhorar!';
+    } else if (sentimento === 'Ruim') {
+      mensagemMotivadora = 'Lembre-se: você não está sozinho. Procure apoio e cuide de você!';
+    }
+
     sentimentoForm.reset();
-    mensagemSucesso.textContent = 'Sentimento enviado com sucesso!';
+    mensagemSucesso.textContent = 'Sentimento enviado com sucesso! ' + mensagemMotivadora;
     mensagemSucesso.classList.remove('d-none');
 
     // Atualizar lista se for responsável (logado)
@@ -327,7 +337,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     setTimeout(() => {
       mensagemSucesso.classList.add('d-none');
-    }, 4000);
+    }, 5000);
   });
 
   // Botão abrir modal login
